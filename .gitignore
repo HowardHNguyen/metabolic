@@ -1,0 +1,16 @@
+# Python
+__pycache__/
+*.pyc
+.venv/
+venv/
+.pytest_cache/
+# Node / build output (built into backend/static by the Dockerfile and `npm run build`)
+node_modules/
+backend/static/
+# OS / editor
+.DS_Store
+# ML scratch
+ml/results_smoke/
+ml/run_full.log
+ml/results/*.npz
+ml/results/benchmark.log
