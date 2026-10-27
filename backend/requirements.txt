@@ -1,0 +1,12 @@
+# Runtime dependencies. The model is pure Python (coefficients in artifacts/models_v1_mets/model.json),
+# so there is no numpy / scikit-learn / xgboost / shap here any more.
+fastapi==0.115.0
+uvicorn[standard]==0.32.0
+gunicorn==23.0.0
+pydantic>=2.5.0,<3
+email-validator>=2.0.0
+bcrypt>=4.0.0
+PyJWT>=2.8.0
+asyncpg>=0.29.0
+# Email (only imported when EMAIL_PROVIDER=acs)
+azure-communication-email>=1.0.0,<2
