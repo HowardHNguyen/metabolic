@@ -12,6 +12,7 @@ import CoachTab from "./components/CoachTab.jsx";
 import ModelDataTab from "./components/ModelDataTab.jsx";
 import FaqTab from "./components/FaqTab.jsx";
 import ResearchTab from "./components/ResearchTab.jsx";
+import FamilyBar from "./components/FamilyBar.jsx";
 import TrendTab from "./components/TrendTab.jsx";
 import { ForgotPage, ResetPage, VerifyPage, ChangePasswordPage } from "./components/AccountEmailPages.jsx";
 import { loadSession, saveSession } from "./session.js";
@@ -111,6 +112,7 @@ export default function App() {
 
   return (
     <>
+      <FamilyBar current="metabolic" />
       {route === "landing" && (
         <Landing user={user} onStart={() => (user ? go("assess") : go("signup"))} onSignIn={() => go("signin")} />
       )}
