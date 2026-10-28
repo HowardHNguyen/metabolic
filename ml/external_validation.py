@@ -208,9 +208,17 @@ def main():
                    "auc_measured_only_label": round(float(roc_auc_score(ym_, p)), 5)}
             for name, p in preds[fs].items()}}
 
-    p = preds["core"]["lr_interact"]
-    assert np.allclose(p, p_live, atol=1e-9), "refit deployed model differs from the live model.json"
-    # deployed model in depth (the same tables as the Model & Data tab, now on new people)
+    # development model = the deployed LR refit on 2011-12 without any recalibration. The shipped model (model.json) may
+    # add an intercept shift that was estimated on THIS external sample (see train_final.py), so its calibration here
+    # is not independent evidence; its discrimination (AUC) is identical to the development model's.
+    p_dev = preds["core"]["lr_interact"]
+    shift = float(spec.spec.get("recalibration", {}).get("intercept_shift", 0.0))
+    lg = lambda q: np.log(q / (1 - q))  # noqa: E731
+    assert np.allclose(lg(p_dev) + shift, lg(p_live), atol=1e-7), "refit model + shift differs from the live model.json"
+    p = p_live
+    results["shipped"] = {"version": spec.version, "intercept_shift": shift,
+                          **metrics(ye, p, idx, None, w), "auc_measured_only_label": round(float(roc_auc_score(ye_m, p)), 5)}
+    # shipped model in depth (the same tables as the Model & Data tab, now on new people)
     dec = pd.qcut(p, 10, labels=False)
     deep = {
         "calibration_deciles": [{"decile": k + 1, "n": int((dec == k).sum()), "predicted": round(float(p[dec == k].mean()), 4),
@@ -237,10 +245,12 @@ def main():
         if m.sum() >= 30 and 0 < ye[m].sum() < m.sum():
             deep["subgroups"][g] = {"n": int(m.sum()), "events": int(ye[m].sum()), "auc": round(float(roc_auc_score(ye[m], p[m])), 3),
                                     "predicted": round(float(p[m].mean()), 4), "observed": round(float(ye[m].mean()), 4)}
-    a = citl(ye, p)
-    p_re = 1 / (1 + np.exp(-(np.log(p / (1 - p)) + a)))
-    deep["recalibration"] = {"intercept_shift": round(a, 4), "o_e_after": round(float(ye.mean() / p_re.mean()), 3),
-                             "cal_slope_after": round(cal_slope(ye, p_re), 3)}
+    # intercept shift that would recalibrate the DEVELOPMENT model to this cycle (read by train_final.py)
+    a = citl(ye, p_dev)
+    p_re = 1 / (1 + np.exp(-(lg(p_dev) + a)))
+    deep["recalibration"] = {"intercept_shift": round(a, 4), "o_e_before": round(float(ye.mean() / p_dev.mean()), 3),
+                             "o_e_after": round(float(ye.mean() / p_re.mean()), 3), "cal_slope_after": round(cal_slope(ye, p_re), 3),
+                             "shift_in_shipped_model": shift}
     results["deployed"] = deep
     (HERE / "results").mkdir(exist_ok=True)
     (HERE / "results" / "external_2017_2020.json").write_text(json.dumps(results, indent=1))
@@ -275,7 +285,12 @@ def report(r):
                   f"weighted prevalence {dep['observed_weighted']:.1%} vs weighted mean prediction {dep['mean_pred_weighted']:.1%}."]
         L += [""]
     d = r["deployed"]
-    L += ["## Deployed model on the new cycle", "", "| Decile | People | Predicted | Observed |", "|---|---|---|---|"]
+    sh = r["shipped"]
+    L += [f"## Shipped model ({sh['version']}) on the new cycle", "",
+          f"Intercept shift in the shipped model: {sh['intercept_shift']:+.4f}. AUC {sh['auc']:.3f} "
+          f"({sh['auc_lo']:.3f}–{sh['auc_hi']:.3f}), calibration slope {sh['cal_slope']:.2f}, O/E {sh['o_e']:.2f}. "
+          "When the shift is non-zero it was estimated on this same sample, so O/E here is not independent evidence.", "",
+          "| Decile | People | Predicted | Observed |", "|---|---|---|---|"]
     L += [f"| {x['decile']} | {x['n']} | {x['predicted']:.1%} | {x['observed']:.1%} |" for x in d["calibration_deciles"]]
     L += ["", "| Level | People | Observed MetS |", "|---|---|---|"]
     pct = lambda v: "—" if v is None else f"{v:.0%}"  # noqa: E731
@@ -285,8 +300,8 @@ def report(r):
           for g, x in d["subgroups"].items()]
     rc = d["recalibration"]
     L += ["", f"Criteria-count AUC on the new cycle (no model, BP excluded): {d['criteria_count_auc']:.3f}.", "",
-          f"Intercept recalibration: shift {rc['intercept_shift']:+.3f} on the log-odds scale gives O/E {rc['o_e_after']:.2f} "
-          f"(slope {rc['cal_slope_after']:.2f}).", ""]
+          f"Recalibrating the development model to this cycle: log-odds shift {rc['intercept_shift']:+.3f} moves O/E from "
+          f"{rc['o_e_before']:.2f} to {rc['o_e_after']:.2f} (slope {rc['cal_slope_after']:.2f}).", ""]
     text = "\n".join(L)
     (HERE / "EXTERNAL.md").write_text(text)
     print(text)

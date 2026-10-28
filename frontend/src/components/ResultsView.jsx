@@ -53,7 +53,7 @@ export default function ResultsView({ data, prediction, explanation, scenarios, 
 
           <p className="risk-plain-language">
             <strong>What this means:</strong> About {riskPercent} out of 100 US adults with your age, sex, background,
-            BMI and waist size had metabolic syndrome when they were tested in the national NHANES survey.
+            BMI and waist size have metabolic syndrome, based on the national NHANES health surveys.
           </p>
           <p className="care-note">
             The Quick Screen uses only body measurements, no blood test. It's an estimate, not a diagnosis; the five-criteria
@@ -79,10 +79,16 @@ export default function ResultsView({ data, prediction, explanation, scenarios, 
                 </div>
               ))}
               <p className="risk-levels-note">
-                About a third of US adults have metabolic syndrome. In testing, the share who actually had it was{" "}
-                {MODEL_SPEC.validation.tier_observed.map((t, i, a) => (
-                  `${i === a.length - 1 ? "and " : ""}${Math.round(t.observed * 100)}% in the ${tierLabel(t.tier)} group`
-                )).join(", ")}. See Model &amp; Data.
+                {MODEL_SPEC.external ? (
+                  <>About 4 in 10 US adults have metabolic syndrome. Among {MODEL_SPEC.external.n.toLocaleString()} adults in the
+                  2017–2020 national survey, the share who actually had it was{" "}
+                  {MODEL_SPEC.external.tiers.map((t, i, a) => `${i === a.length - 1 ? "and " : ""}${Math.round(t.observed * 100)}% in the ${t.tier} group`).join(", ")}.
+                  See Model &amp; Data.</>
+                ) : (
+                  <>About a third of US adults have metabolic syndrome. In testing, the share who actually had it was{" "}
+                  {MODEL_SPEC.validation.tier_observed.map((t, i, a) => `${i === a.length - 1 ? "and " : ""}${Math.round(t.observed * 100)}% in the ${tierLabel(t.tier)} group`).join(", ")}.
+                  See Model &amp; Data.</>
+                )}
               </p>
             </div>
           </div>

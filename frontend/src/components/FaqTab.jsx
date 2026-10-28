@@ -16,7 +16,7 @@ const FAQS = [
   },
   {
     q: "How accurate is the Quick Screen?",
-    a: `In cross-validation (every person scored by a model that never saw them) its AUC is ${M.validation.auc.toFixed(2)} (95% interval ${M.validation.auc_ci95[0].toFixed(2)}–${M.validation.auc_ci95[1].toFixed(2)}), and its percentages match what was observed. It still misses some people and flags some who don't have metabolic syndrome, so a blood test is the way to be sure. See the Model & Data tab for details by age, sex and background.`,
+    a: `It was tested two ways. In cross-validation on the 2011–12 survey (every person scored by a model that never saw them) its AUC is ${M.validation.auc.toFixed(2)}.${M.external ? ` On ${M.external.n.toLocaleString()} different adults from the 2017–2020 survey, which the model had never seen, it scored ${M.external.models.lr_interact.auc.toFixed(2)}. There it slightly under-estimated how common metabolic syndrome had become, so the current version raises all estimates a little to match.` : ""} It still misses some people and flags some who don't have metabolic syndrome, so a blood test is the way to be sure. See the Model & Data tab for details by age, sex and background.`,
   },
   {
     q: "Why do you ask about race and ethnicity?",

@@ -143,3 +143,31 @@ def test_no_benchmarked_model_is_credibly_better_than_the_deployed_one():
     for b in rows:
         if b["d_vs_dep"] is not None:
             assert b["d_dep_lo"] <= 0, f"{b['model']} is now credibly better than the deployed model"
+
+
+# ---- external validation and recalibration (v1.1)
+def test_recalibration_is_an_intercept_only_shift_estimated_externally():
+    rc = SPEC["recalibration"]
+    assert SPEC["intercept"] == pytest.approx(rc["development_intercept"] + rc["intercept_shift"], abs=1e-4)
+    assert rc["intercept_shift"] == pytest.approx(SPEC["external"]["recalibration"]["intercept_shift"], abs=1e-4)
+    assert abs(rc["intercept_shift"]) < 0.5  # a level adjustment, not a different model
+
+
+def test_external_validation_claims_are_honest():
+    ex = SPEC["external"]
+    dep = ex["models"]["lr_interact"]
+    assert ex["n"] > 3000 and 0.80 < dep["auc"] < 0.88 and dep["auc_lo"] > 0.8
+    assert ex["shipped"]["version"] == SPEC["version"] and ex["shipped"]["auc"] == pytest.approx(dep["auc"], abs=1e-4)
+    assert 0.95 < ex["shipped"]["o_e"] < 1.05  # after the shift (estimated on this sample, so not independent)
+    obs = [t["observed"] for t in ex["tiers"]]
+    assert obs == sorted(obs)
+    for t in ex["tiers"]:
+        assert t["range"][0] - 0.05 <= t["observed"] <= t["range"][1] + 0.05, t
+
+
+def test_no_model_is_credibly_better_externally_by_a_meaningful_margin():
+    # the stack's external edge was +0.004 AUC; if any model ever beats the deployed one by 0.01+ with an interval
+    # clear of zero, the model choice must be revisited
+    for name, m in SPEC["external"]["models"].items():
+        if m.get("d_vs_dep") is not None:
+            assert not (m["d_lo"] > 0 and m["d_vs_dep"] >= 0.01), name

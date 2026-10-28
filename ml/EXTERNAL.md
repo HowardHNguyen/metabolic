@@ -50,42 +50,44 @@ n = 3,460
 
 Survey-weighted (fasting-subsample weights), deployed model: AUC 0.854; weighted prevalence 39.8% vs weighted mean prediction 36.8%.
 
-## Deployed model on the new cycle
+## Shipped model (1.1.0-lr-mets-quick-recal) on the new cycle
+
+Intercept shift in the shipped model: +0.2407. AUC 0.844 (0.832–0.856), calibration slope 1.08, O/E 1.00. When the shift is non-zero it was estimated on this same sample, so O/E here is not independent evidence.
 
 | Decile | People | Predicted | Observed |
 |---|---|---|---|
-| 1 | 351 | 1.6% | 1.4% |
-| 2 | 351 | 6.8% | 6.0% |
-| 3 | 350 | 14.2% | 15.4% |
-| 4 | 351 | 23.6% | 26.5% |
-| 5 | 350 | 33.1% | 37.7% |
-| 6 | 351 | 43.7% | 52.4% |
-| 7 | 350 | 54.1% | 63.7% |
-| 8 | 351 | 63.9% | 70.9% |
-| 9 | 350 | 73.6% | 78.6% |
-| 10 | 351 | 84.2% | 86.0% |
+| 1 | 351 | 2.0% | 1.4% |
+| 2 | 351 | 8.5% | 6.0% |
+| 3 | 350 | 17.4% | 15.4% |
+| 4 | 351 | 28.2% | 26.5% |
+| 5 | 350 | 38.7% | 37.7% |
+| 6 | 351 | 49.6% | 52.4% |
+| 7 | 350 | 60.0% | 63.7% |
+| 8 | 351 | 69.3% | 70.9% |
+| 9 | 350 | 78.0% | 78.6% |
+| 10 | 351 | 87.1% | 86.0% |
 
 | Level | People | Observed MetS |
 |---|---|---|
-| Unlikely (0%–15%) | 914 | 6% |
-| Possible (15%–40%) | 897 | 31% |
-| Likely (40%–65%) | 852 | 61% |
-| Very likely (65%–100%) | 843 | 81% |
+| Unlikely (0%–15%) | 796 | 5% |
+| Possible (15%–40%) | 838 | 25% |
+| Likely (40%–65%) | 841 | 57% |
+| Very likely (65%–100%) | 1031 | 79% |
 
 | Group | People | With MetS | AUC | Predicted | Observed |
 |---|---|---|---|---|---|
-| Men | 1744 | 719 | 0.853 | 39.6% | 41.2% |
-| Women | 1762 | 819 | 0.837 | 40.1% | 46.5% |
-| Age 20-39 | 1031 | 247 | 0.845 | 24.5% | 24.0% |
-| Age 40-59 | 1186 | 544 | 0.816 | 40.1% | 45.9% |
-| Age 60-80 | 1289 | 747 | 0.824 | 52.0% | 58.0% |
-| White | 1205 | 546 | 0.846 | 41.9% | 45.3% |
-| Black | 894 | 380 | 0.860 | 38.1% | 42.5% |
-| Asian | 431 | 146 | 0.846 | 31.3% | 33.9% |
-| Hispanic | 353 | 173 | 0.841 | 45.2% | 49.0% |
-| Mexican American | 436 | 204 | 0.798 | 44.6% | 46.8% |
-| Other | 187 | 89 | 0.835 | 34.2% | 47.6% |
+| Men | 1744 | 719 | 0.853 | 43.7% | 41.2% |
+| Women | 1762 | 819 | 0.837 | 44.1% | 46.5% |
+| Age 20-39 | 1031 | 247 | 0.845 | 27.7% | 24.0% |
+| Age 40-59 | 1186 | 544 | 0.816 | 44.3% | 45.9% |
+| Age 60-80 | 1289 | 747 | 0.824 | 56.4% | 58.0% |
+| White | 1205 | 546 | 0.846 | 45.9% | 45.3% |
+| Black | 894 | 380 | 0.860 | 41.9% | 42.5% |
+| Asian | 431 | 146 | 0.846 | 35.1% | 33.9% |
+| Hispanic | 353 | 173 | 0.841 | 49.4% | 49.0% |
+| Mexican American | 436 | 204 | 0.798 | 48.8% | 46.8% |
+| Other | 187 | 89 | 0.835 | 38.0% | 47.6% |
 
 Criteria-count AUC on the new cycle (no model, BP excluded): 0.949.
 
-Intercept recalibration: shift +0.241 on the log-odds scale gives O/E 1.00 (slope 1.08).
+Recalibrating the development model to this cycle: log-odds shift +0.241 moves O/E from 1.10 to 1.00 (slope 1.08).
