@@ -56,42 +56,47 @@ meaningless. The model is used only where one is needed: estimating the answer w
 
 ## The model
 
-**Data:** `data/metabolic_syndrome.csv`, NHANES 2011–2012.
-- 2,401 adults aged 20–80; 2,311 with waist and BMI measured.
-- 34.7% have MetS.
+**Data (v2):** NHANES 2011–12 and 2017–March 2020, rebuilt from the CDC files by `ml/nhanes.py` →
+`data/nhanes_pooled.csv` (raw files in `data/nhanes_2011_2012/` and `data/external/`).
+- Fasting subsample, aged 20–80, not pregnant, with waist, BMI, fasting labs and blood pressure (or BP medicine).
+- 5,757 adults: 2,251 from 2011–12 (36.8% MetS) and 3,506 from 2017–20 (43.9%).
+- One label for both surveys: ATP III / harmonized, 3 of 5 criteria, with BP and diabetes medicines counted.
 
-**Deployed:** `1.1.0-lr-mets-quick-recal`, i.e. `1.0.0` plus an intercept update to the 2017–2020 population (see below).
-- Logistic regression on age, sex, five race/ethnicity indicators, BMI and waist.
+**Deployed:** `2.0.0-lr-mets-pooled`.
+- Logistic regression on age, sex, five race/ethnicity indicators, BMI and waist, plus a survey term (`RECENT`).
 - Three extra terms: sex × age, sex × waist, waist². These let waist and age act differently by sex, matching the
   sex-specific cut-points.
+- `RECENT` is fixed to 1 (2017–20) and folded into the intercept, so `model.json` keeps the v1 format and the
+  percentages describe today's population. The survey term itself is small (OR 1.10): most of the
+  rise in prevalence is explained by bigger waists and BMI.
 - Explanations are exact Shapley values of the log-odds. They are additive and identical in Python and JS.
 
 | 5×5 stratified CV | Value |
 |---|---|
-| AUC | **0.833** (95% CI 0.816–0.849) |
-| Calibration slope / observed ÷ expected / ECE | 0.99 / 1.00 / 0.02 |
-| Observed MetS in each level | Unlikely 5% · Possible 26% · Likely 56% · Very likely 73% |
-| Terms re-selected inside every training fold (nested) | AUC 0.831, so the choice is not over-fitted |
+| AUC, pooled | **0.853** (95% CI 0.844–0.863) |
+| Calibration slope, pooled | 1.00 |
+| 2017–20 people only: AUC / slope / observed ÷ expected | 0.847 / 0.98 / 1.00 |
+| Observed MetS in each level (2017–20) | Unlikely 6% · Possible 27% · Likely 55% · Very likely 78% |
+| Cross-survey: trained on 2011–12 → tested on 2017–20 | AUC 0.845, O/E 1.04 |
+| Cross-survey: trained on 2017–20 → tested on 2011–12 | AUC 0.860, O/E 0.97 |
 
-**External validation:** [`ml/EXTERNAL.md`](ml/EXTERNAL.md), produced by `ml/external_validation.py`.
-- Every model was trained on 2011–12 and scored on 3,506 different adults from **NHANES 2017–March 2020**.
-- Deployed model: AUC **0.844** (0.832–0.856), calibration slope 1.08.
-- As developed, it under-estimated prevalence (O/E 1.10). v1.1 adds **+0.24** to the log-odds intercept, which brings
-  O/E to 1.00. Ranking, odds ratios and explanations are unchanged.
-- The stack is +0.004 AUC (+0.0001 to +0.0084); RF, XGBoost and LightGBM are tied. The deployed LR is kept for
-  exact explanations and in-browser What-If.
-- The CDC files are in `data/external/`. The next step is retraining on both surveys with one label definition.
-
-**Benchmark:** see [`ml/RESULTS.md`](ml/RESULTS.md).
-- Compared plain LR, spline LR, random forest, XGBoost, LightGBM and an LR+RF+XGB stack on four input sets.
-- The interaction LR closes most of the gap to the tree models. The remaining stack advantage is shown with its
-  interval on the Model & Data page.
+**Benchmark:** see [`ml/RESULTS.md`](ml/RESULTS.md) (v1: [`ml/RESULTS_v1.md`](ml/RESULTS_v1.md)).
+- Compared plain LR, spline LR, LR with nested term selection, random forest, XGBoost, LightGBM and an LR+RF+XGB
+  stack on four input sets, in CV and in both cross-survey directions.
+- The tree models and the stack are 0.005–0.008 AUC ahead, consistently but by less than 0.01. The deployed LR is
+  kept for exact explanations, identical server/browser results and the offline What-If; a test fails if the gap ever
+  reaches 0.01.
 - Uric acid and urine albumin/creatinine add about +0.01 AUC but few people know them, so they aren't asked for.
+
+**History:** 1.0.0 trained on the 2011–12 Kaggle extract (whose label turned out to ignore medicines); 1.1.0 added an
+intercept shift after external validation on 2017–20 ([`ml/EXTERNAL.md`](ml/EXTERNAL.md)); 2.0.0 retrains on both
+surveys with one label. Saved 1.x assessments show as "earlier model" in Progress, with a Recalculate button.
 
 **Limitations:**
 - It measures current status, not a forecast.
-- One unweighted survey cycle, so percentages describe the sample, not exact national figures.
-- Validated on one later US survey (2017–2020); the intercept update was estimated on that same sample.
+- The model is fitted to the unweighted samples; the "How you compare" percentiles are survey-weighted (2017–20).
+- Blood pressure was measured differently in the two surveys (auscultation vs oscillometric).
+- No reliable NHANES question on triglyceride/HDL medicines, so those two criteria use measured values.
 - Home-measured waist adds noise.
 
 ## Research datasets (`data/research/`)
@@ -132,12 +137,15 @@ metabolic/
 │   ├── src/components/        # wizard, results, criteria, percentiles, what-if, coach, progress, model & data, research, FAQ
 │   └── tests/riskModel.test.mjs
 ├── ml/
+│   ├── nhanes.py              # builds the pooled dataset + weighted percentiles from the CDC files
 │   ├── common.py              # data loading, design matrix, interaction terms
 │   ├── benchmark.py           # model comparison (5×5 CV, paired bootstrap)
 │   ├── train_final.py         # trains + validates the deployed model, writes both model.json files
 │   ├── research_summary.py    # Research tab analyses
 │   └── RESULTS.md, results/
-├── data/metabolic_syndrome.csv          # NHANES 2011-12 training data
+├── data/nhanes_pooled.csv              # v2 training data (ml/nhanes.py from the CDC files)
+├── data/nhanes_2011_2012/, data/external/  # raw CDC NHANES files, 2011-12 and 2017-20
+├── data/metabolic_syndrome.csv          # v1 training data (2011-12 extract)
 ├── data/research/                       # research datasets (not used by the screen)
 └── .github/workflows/         # ci.yml (PR + gate), main_metabolic-app.yml (deploy)
 ```
@@ -167,9 +175,10 @@ cd frontend && node --test tests/*.test.mjs               # browser model == tra
 Retraining (`pip install -r ml/requirements.txt`):
 
 ```bash
-python ml/benchmark.py          # model comparison (~10 min on 2 cores) -> ml/results/benchmark.csv
-python ml/external_validation.py  # external check on NHANES 2017-2020 (data/external/) -> ml/EXTERNAL.md
-python ml/train_final.py        # retrain + validate + apply the external intercept update, rewrite both model.json
+python ml/nhanes.py             # rebuild data/nhanes_pooled.csv from the CDC files
+python ml/benchmark.py          # model comparison + cross-survey (~30 min on 2 cores) -> ml/results/*_v2.csv
+python ml/show_results.py       # -> ml/RESULTS.md
+python ml/train_final.py        # retrain + validate, rewrite both model.json
 python ml/research_summary.py   # rebuild the Research tab data
 ```
 

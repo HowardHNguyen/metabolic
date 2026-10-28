@@ -180,10 +180,10 @@ def test_save_list_delete_and_isolation(client):
     _, a = _user(client, "a")
     _, b = _user(client, "b")
     saved = client.post("/predict", json=GOOD, headers=a).json()
-    assert saved["assessment_id"] and saved["model_version"].startswith("1.")
+    assert saved["assessment_id"] and saved["model_version"].startswith("2.")
     assert client.post("/predict?save=false", json=GOOD, headers=a).json()["assessment_id"] is None
     rows = client.get("/assessments", headers=a).json()
-    assert len(rows) == 1 and rows[0]["model_version"].startswith("1.") and rows[0]["inputs"]["AGE"] == 52
+    assert len(rows) == 1 and rows[0]["model_version"].startswith("2.") and rows[0]["inputs"]["AGE"] == 52
     assert client.get("/assessments", headers=b).json() == []
     assert client.delete(f"/assessments/{saved['assessment_id']}", headers=b).status_code == 404  # not theirs
     assert client.delete("/assessments/not-a-uuid", headers=a).status_code == 404

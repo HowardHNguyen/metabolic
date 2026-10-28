@@ -16,7 +16,7 @@ export default function PercentileCard({ percentiles }) {
     <article className="myrisk-side-card percentile-card">
       <h3>How you compare</h3>
       <p className="section-copy">
-        Your values against {groupLabel(percentiles.group)} in the NHANES 2011–12 survey sample. The marker shows the share
+        Your values against {groupLabel(percentiles.group)} in the US population (NHANES 2017–2020, survey-weighted). The marker shows the share
         of people with a lower value.
       </p>
       <div className="pct-rows">

@@ -1,4 +1,5 @@
-"""External (temporal) validation of the Quick Screen on NHANES 2017–March 2020 (pre-pandemic, "P_" files).
+"""[v1 record] External (temporal) validation of the v1 Quick Screen on NHANES 2017–March 2020 (pre-pandemic, "P_" files).
+Kept to document how v1 / v1.1 were validated; the v2 model is built and validated by ml/benchmark.py + ml/train_final.py.
 
 Every model is trained on the full NHANES 2011–12 training data. It is then scored on adults from the 2017–2020
 cycle, none of whom were in training. This answers the open question from the benchmark: on new people, does any model
@@ -40,7 +41,7 @@ ROOT = HERE.parent
 sys.path.insert(0, str(HERE))
 sys.path.insert(0, str(ROOT / "backend"))
 from benchmark import models as make_models  # noqa: E402
-from common import FEATURE_SETS, RACES, RACE_FEATURES, design, load, target  # noqa: E402
+from common import FEATURE_SETS_V1 as FEATURE_SETS, RACES, RACE_FEATURES, design, load, target  # noqa: E402
 from app.model import MetabolicModel  # noqa: E402
 
 warnings.filterwarnings("ignore")
@@ -168,7 +169,7 @@ def main():
     ext, flow = build()
     for k, v in flow.items():
         print(f"  {k:52s} {v:6,d}")
-    tr = load()
+    tr = load("v1")  # archived v1 check: models trained on the 2011-12 extract
     Xtr_all, ytr = design(tr), target(tr)
     Xex_all = design(ext)
     ye = ext.MetabolicSyndrome.values
@@ -214,7 +215,8 @@ def main():
     p_dev = preds["core"]["lr_interact"]
     shift = float(spec.spec.get("recalibration", {}).get("intercept_shift", 0.0))
     lg = lambda q: np.log(q / (1 - q))  # noqa: E731
-    assert np.allclose(lg(p_dev) + shift, lg(p_live), atol=1e-7), "refit model + shift differs from the live model.json"
+    if spec.version.startswith("1."):  # archived v1 record: only meaningful while the live model is v1.x
+        assert np.allclose(lg(p_dev) + shift, lg(p_live), atol=1e-7), "refit model + shift differs from the live model.json"
     p = p_live
     results["shipped"] = {"version": spec.version, "intercept_shift": shift,
                           **metrics(ye, p, idx, None, w), "auc_measured_only_label": round(float(roc_auc_score(ye_m, p)), 5)}

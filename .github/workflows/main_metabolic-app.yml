@@ -20,6 +20,7 @@ on:
       - "ml/**"
       - "data/research/**"
       - "data/external/**"
+      - "data/nhanes_2011_2012/**"
       - "**.md"
   workflow_dispatch:
 

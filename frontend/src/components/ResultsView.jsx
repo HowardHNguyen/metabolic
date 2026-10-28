@@ -79,16 +79,10 @@ export default function ResultsView({ data, prediction, explanation, scenarios, 
                 </div>
               ))}
               <p className="risk-levels-note">
-                {MODEL_SPEC.external ? (
-                  <>About 4 in 10 US adults have metabolic syndrome. Among {MODEL_SPEC.external.n.toLocaleString()} adults in the
-                  2017–2020 national survey, the share who actually had it was{" "}
-                  {MODEL_SPEC.external.tiers.map((t, i, a) => `${i === a.length - 1 ? "and " : ""}${Math.round(t.observed * 100)}% in the ${t.tier} group`).join(", ")}.
-                  See Model &amp; Data.</>
-                ) : (
-                  <>About a third of US adults have metabolic syndrome. In testing, the share who actually had it was{" "}
-                  {MODEL_SPEC.validation.tier_observed.map((t, i, a) => `${i === a.length - 1 ? "and " : ""}${Math.round(t.observed * 100)}% in the ${tierLabel(t.tier)} group`).join(", ")}.
-                  See Model &amp; Data.</>
-                )}
+                About 4 in 10 US adults have metabolic syndrome. Among {MODEL_SPEC.validation.recent.n.toLocaleString()} adults in the
+                2017–2020 national survey, the share who actually had it was{" "}
+                {MODEL_SPEC.validation.recent.tier_observed.map((t, i, a) => `${i === a.length - 1 ? "and " : ""}${Math.round(t.observed * 100)}% in the ${tierLabel(t.tier)} group`).join(", ")}.
+                See Model &amp; Data.
               </p>
             </div>
           </div>
