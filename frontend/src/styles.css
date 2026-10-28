@@ -2307,3 +2307,21 @@ footer.site-footer {
   .results-lower, .whatif-two-col { grid-template-columns: 1fr; }
   .forest-head, .forest-row { grid-template-columns: 1fr 1.4fr 80px; }
 }
+
+/* ---- vitalCKM family bar (shared by cardio / ckd / metabolic; keep identical) ---- */
+.family-bar { background: #10192b; color: rgba(255, 255, 255, 0.72); font-size: 13px; line-height: 1; }
+.family-bar-inner { display: flex; align-items: center; justify-content: space-between; gap: 12px; min-height: 34px; }
+.family-bar-label { letter-spacing: 0.04em; white-space: nowrap; }
+.family-bar-links { display: flex; gap: 4px; flex-wrap: wrap; justify-content: flex-end; }
+.family-link {
+  color: rgba(255, 255, 255, 0.78); text-decoration: none; padding: 6px 10px; border-radius: 999px;
+  border: 1px solid transparent; white-space: nowrap;
+}
+.family-link:hover { color: #fff; border-color: rgba(255, 255, 255, 0.28); }
+.family-link:focus-visible { outline: 2px solid #7cc4f5; outline-offset: 1px; }
+.family-link.current { color: #fff; font-weight: 600; cursor: default; }
+.family-link.current.cardio { background: #025bcd; }
+.family-link.current.ckd { background: #2ca8f0; color: #10192b; }
+.family-link.current.metabolic { background: #6f1eb8; }
+@media (max-width: 480px) { .family-bar-label { display: none; } .family-bar-links { justify-content: flex-start; } }
+@media print { .family-bar { display: none !important; } }
