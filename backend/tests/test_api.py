@@ -1,3 +1,6 @@
+import json
+from pathlib import Path
+
 import pytest
 
 from app import main
@@ -13,7 +16,7 @@ def test_predict_ok(client, good):
     assert r.status_code == 200
     j = r.json()
     assert 0 < j["risk_probability"] < 1 and j["category"] in {"low", "borderline", "intermediate", "high"}
-    assert j["model_version"].startswith("1.")
+    assert j["model_version"] == json.load(open(Path(__file__).resolve().parents[1] / "artifacts" / "models_v1_mets" / "model.json"))["version"]
     assert j["criteria"]["met"] == 5 and j["criteria"]["verdict"] == "meets"
     assert set(j["percentiles"]["values"]) == {"WAIST", "BMI", "GLUCOSE", "HDL", "TG"}
 

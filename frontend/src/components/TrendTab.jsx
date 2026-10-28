@@ -80,7 +80,8 @@ export default function TrendTab({ history, userEmail, onRecalculate, onDelete }
             <p className="driver-chart-sub" style={{ margin: "4px 0 0" }}>
               {legacyCount} earlier assessment{legacyCount !== 1 ? "s were" : " was"} made with a different model
               version and {legacyCount !== 1 ? "aren't" : "isn't"} comparable, so {legacyCount !== 1 ? "they're" : "it's"} left
-              out of the trend. You can still delete {legacyCount !== 1 ? "them" : "it"} below.
+              out of the trend. Use <strong>Recalculate</strong> to re-score {legacyCount !== 1 ? "one" : "it"} with the current
+              model (your saved answers are kept), or delete {legacyCount !== 1 ? "them" : "it"} below.
             </p>
           )}
         </div>

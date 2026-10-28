@@ -4,7 +4,8 @@
 mean CV AUC, a paired bootstrap 95% CI for its AUC difference vs plain logistic regression, Brier score and
 calibration slope. Preprocessing (scaling, splines) is fitted inside each training fold.
 
-    python ml/benchmark.py            # writes ml/results/benchmark.csv and prints the table
+    python ml/benchmark.py            # v2 pooled data -> ml/results/benchmark_v2.csv + cross_cycle_v2.csv
+    python ml/benchmark.py v1         # archived v1 (2011-12 extract) -> ml/results/benchmark.csv
 """
 from __future__ import annotations
 
@@ -28,7 +29,7 @@ from sklearn.compose import ColumnTransformer
 from xgboost import XGBClassifier
 
 sys.path.insert(0, str(Path(__file__).resolve().parent))
-from common import CANDIDATE_TERMS, FEATURE_SETS, INTERACTIONS, add_terms, design, load, target  # noqa: E402
+from common import CANDIDATE_TERMS, FEATURE_SETS, FEATURE_SETS_V1, INTERACTIONS, add_terms, design, load, target  # noqa: E402
 
 warnings.filterwarnings("ignore")
 OUT = Path(__file__).resolve().parent / "results"
@@ -99,49 +100,67 @@ def cal_slope(y, p):
     return float(LogisticRegression(C=1e6, max_iter=1000).fit(lo, y).coef_[0, 0])
 
 
-def main():
-    t0 = time.time()
-    d = load()
-    X_all, y = design(d), target(d)
+def summarise(y, preds, idx, fs):
     rows = []
-    for fs, cols in FEATURE_SETS.items():
-        X = X_all[cols]
+    p_lr = preds["lr"].mean(0) if preds["lr"].ndim == 2 else preds["lr"]
+    p_dep = None if "lr_interact" not in preds else (preds["lr_interact"].mean(0) if preds["lr_interact"].ndim == 2 else preds["lr_interact"])
+    for name, P in preds.items():
+        p = P.mean(0) if P.ndim == 2 else P
+        aucs = [roc_auc_score(y, q) for q in P] if P.ndim == 2 else [roc_auc_score(y, p)]
+        boot = np.array([roc_auc_score(y[i], p[i]) for i in idx])
+        row = {"feature_set": fs, "model": name, "n": len(y), "events": int(y.sum()),
+               "auc": np.mean(aucs), "auc_lo": np.percentile(boot, 2.5), "auc_hi": np.percentile(boot, 97.5),
+               "brier": brier_score_loss(y, p), "cal_slope": cal_slope(y, p), "o_e": y.mean() / p.mean()}
+        if name != "lr":
+            dd = np.array([roc_auc_score(y[i], p[i]) - roc_auc_score(y[i], p_lr[i]) for i in idx])
+            row.update(d_vs_lr=roc_auc_score(y, p) - roc_auc_score(y, p_lr), d_lo=np.percentile(dd, 2.5), d_hi=np.percentile(dd, 97.5))
+        if p_dep is not None and name != "lr_interact":
+            dd = np.array([roc_auc_score(y[i], p[i]) - roc_auc_score(y[i], p_dep[i]) for i in idx])
+            row.update(d_vs_dep=roc_auc_score(y, p) - roc_auc_score(y, p_dep),
+                       d_dep_lo=np.percentile(dd, 2.5), d_dep_hi=np.percentile(dd, 97.5))
+        rows.append(row)
+    return rows
+
+
+def main(version="v2"):
+    t0 = time.time()
+    d = load(version)
+    sets = FEATURE_SETS if version == "v2" else FEATURE_SETS_V1
+    X_all, y_all = design(d), target(d)
+    rows, cross = [], []
+    for fs, cols in sets.items():
+        keep = X_all[cols].notna().all(axis=1).values          # e.g. a few people without uric acid / urine albumin
+        X, y = X_all.loc[keep, cols].reset_index(drop=True), y_all[keep]
         preds = {}
         for name, make in models(cols).items():
             P = np.zeros((REPS, len(y)))
             for r in range(REPS):
                 for tr, te in StratifiedKFold(FOLDS, shuffle=True, random_state=r).split(X, y):
-                    m = make().fit(X.iloc[tr], y[tr])
-                    P[r, te] = m.predict_proba(X.iloc[te])[:, 1]
+                    P[r, te] = make().fit(X.iloc[tr], y[tr]).predict_proba(X.iloc[te])[:, 1]
             preds[name] = P
-            print(f"  {fs:15s} {name:16s} AUC {np.mean([roc_auc_score(y, q) for q in P]):.4f}  ({time.time() - t0:.0f}s)",
-                  flush=True)
+            print(f"  {fs:15s} {name:20s} CV AUC {np.mean([roc_auc_score(y, q) for q in P]):.4f}  ({time.time() - t0:.0f}s)", flush=True)
         rng = np.random.default_rng(0)
-        idx = [rng.integers(0, len(y), len(y)) for _ in range(BOOT)]
-        p_lr = preds["lr"].mean(0)
-        for name, P in preds.items():
-            p = P.mean(0)
-            aucs = [roc_auc_score(y, q) for q in P]
-            boot = np.array([roc_auc_score(y[i], p[i]) for i in idx])
-            row = {"feature_set": fs, "model": name, "n": len(y), "events": int(y.sum()),
-                   "auc": np.mean(aucs), "auc_lo": np.percentile(boot, 2.5), "auc_hi": np.percentile(boot, 97.5),
-                   "brier": brier_score_loss(y, p), "cal_slope": cal_slope(y, p), "o_e": y.mean() / p.mean()}
-            if name != "lr":
-                dd = np.array([roc_auc_score(y[i], p[i]) - roc_auc_score(y[i], p_lr[i]) for i in idx])
-                row.update(d_vs_lr=roc_auc_score(y, p) - roc_auc_score(y, p_lr),
-                           d_lo=np.percentile(dd, 2.5), d_hi=np.percentile(dd, 97.5))
-            if "lr_interact" in preds and name != "lr_interact":  # difference vs the deployed model
-                p_dep = preds["lr_interact"].mean(0)
-                dd = np.array([roc_auc_score(y[i], p[i]) - roc_auc_score(y[i], p_dep[i]) for i in idx])
-                row.update(d_vs_dep=roc_auc_score(y, p) - roc_auc_score(y, p_dep),
-                           d_dep_lo=np.percentile(dd, 2.5), d_dep_hi=np.percentile(dd, 97.5))
-            rows.append(row)
+        rows += summarise(y, preds, [rng.integers(0, len(y), len(y)) for _ in range(BOOT)], fs)
+        if version == "v2" and fs == "core":
+            # cross-cycle validation: train on one survey, test on the other (both directions)
+            cyc = d.loc[keep, "cycle"].values
+            for train_c, test_c in (("G", "P"), ("P", "G")):
+                tr_, te_ = cyc == train_c, cyc == test_c
+                cp = {name: make().fit(X[tr_], y[tr_]).predict_proba(X[te_])[:, 1] for name, make in models(cols).items()}
+                yt = y[te_]
+                rng = np.random.default_rng(0)
+                for r_ in summarise(yt, cp, [rng.integers(0, len(yt), len(yt)) for _ in range(BOOT)], fs):
+                    cross.append({"train": train_c, "test": test_c, **r_})
+                print(f"  cross-cycle {train_c}->{test_c} done ({time.time() - t0:.0f}s)", flush=True)
     res = pd.DataFrame(rows)
     OUT.mkdir(exist_ok=True)
-    res.round(5).to_csv(OUT / "benchmark.csv", index=False)
+    res.round(6).to_csv(OUT / ("benchmark_v2.csv" if version == "v2" else "benchmark.csv"), index=False)
+    if cross:
+        pd.DataFrame(cross).round(6).to_csv(OUT / "cross_cycle_v2.csv", index=False)
+        print(pd.DataFrame(cross).round(4)[["train", "test", "model", "auc", "auc_lo", "auc_hi", "cal_slope", "o_e", "d_vs_dep", "d_dep_lo", "d_dep_hi"]].to_string(index=False))
     print(res.round(4).to_string(index=False))
     print(f"done in {time.time() - t0:.0f}s")
 
 
 if __name__ == "__main__":
-    main()
+    main(sys.argv[1] if len(sys.argv) > 1 else "v2")

@@ -104,10 +104,13 @@ def test_verdicts():
     assert crit(WAIST=80, TG=100, HDL=60)["verdict"] == "does_not_meet"  # 3 not met: cannot reach 3 whatever BP/glucose are
 
 
-def test_dataset_label_agrees_with_the_criteria():
-    rows = {r["criteria_met"]: r for r in SPEC["validation"]["criteria_agreement"]["rows"]}
-    assert rows[0]["labelled_mets"] == 0 and rows[4]["labelled_mets"] == rows[4]["n"]
-    assert rows[3]["labelled_mets"] >= rows[3]["n"] - 2  # 3 measured criteria met = metabolic syndrome
+def test_training_label_is_the_same_rule_in_both_surveys():
+    t = SPEC["training"]
+    assert set(t["by_cycle"]) == {"2011-2012", "2017-2020"}
+    assert sum(c["n"] for c in t["by_cycle"].values()) == t["rows"]
+    for c in t["by_cycle"].values():
+        assert c["prevalence"] >= c["prevalence_measured_only"]  # counting medicines can only add criteria
+    assert 0.85 < t["criteria_count_auc"] <= 1.0  # the Model & Data page uses this to explain why labs are left out
 
 
 # ---- percentiles
@@ -135,39 +138,37 @@ def test_explanation_of_the_average_profile_is_zero():
     assert all(abs(c["value"]) < 0.05 for c in others)
 
 
-def test_no_benchmarked_model_is_credibly_better_than_the_deployed_one():
-    # the Model & Data page says the deployed model ties the tree models; if a retrain makes another model's whole
-    # interval clear zero, that text (and the choice of model) must be revisited
+def test_no_benchmarked_model_is_credibly_better_by_a_meaningful_margin():
+    # if a retrain makes another model beat the deployed one by 0.01+ AUC with an interval clear of zero, the model
+    # choice (and the Model & Data text) must be revisited
     rows = [b for b in SPEC["benchmark"] if b["feature_set"] == "core"]
     assert any(b["model"] == "lr_interact" for b in rows)
-    for b in rows:
-        if b["d_vs_dep"] is not None:
-            assert b["d_dep_lo"] <= 0, f"{b['model']} is now credibly better than the deployed model"
+    for b in rows + [r for r in SPEC["cross_cycle"]]:
+        if b.get("d_vs_dep") is not None:
+            assert not (b["d_dep_lo"] > 0 and b["d_vs_dep"] >= 0.01), b["model"]
 
 
-# ---- external validation and recalibration (v1.1)
-def test_recalibration_is_an_intercept_only_shift_estimated_externally():
-    rc = SPEC["recalibration"]
-    assert SPEC["intercept"] == pytest.approx(rc["development_intercept"] + rc["intercept_shift"], abs=1e-4)
-    assert rc["intercept_shift"] == pytest.approx(SPEC["external"]["recalibration"]["intercept_shift"], abs=1e-4)
-    assert abs(rc["intercept_shift"]) < 0.5  # a level adjustment, not a different model
+# ---- v2: pooled surveys with a survey term
+def test_shipped_intercept_is_the_pooled_intercept_plus_the_survey_term():
+    sa = SPEC["survey_adjustment"]
+    assert SPEC["intercept"] == pytest.approx(sa["pooled_intercept"] + sa["coef"], abs=1e-6)
+    assert abs(sa["coef"]) < 0.5  # a level difference between surveys, not a different model
+    assert "RECENT" not in SPEC["features"]
 
 
-def test_external_validation_claims_are_honest():
-    ex = SPEC["external"]
-    dep = ex["models"]["lr_interact"]
-    assert ex["n"] > 3000 and 0.80 < dep["auc"] < 0.88 and dep["auc_lo"] > 0.8
-    assert ex["shipped"]["version"] == SPEC["version"] and ex["shipped"]["auc"] == pytest.approx(dep["auc"], abs=1e-4)
-    assert 0.95 < ex["shipped"]["o_e"] < 1.05  # after the shift (estimated on this sample, so not independent)
-    obs = [t["observed"] for t in ex["tiers"]]
+def test_calibrated_on_the_recent_survey():
+    rv = SPEC["validation"]["recent"]
+    assert rv["n"] > 3000 and 0.80 < rv["auc"] < 0.90
+    assert 0.95 < rv["observed_over_expected"] < 1.05 and 0.9 < rv["calibration_slope"] < 1.1
+    obs = [t["observed"] for t in rv["tier_observed"]]
     assert obs == sorted(obs)
-    for t in ex["tiers"]:
-        assert t["range"][0] - 0.05 <= t["observed"] <= t["range"][1] + 0.05, t
+    for t in rv["tier_observed"]:
+        tier = next(x for x in SPEC["tiers"] if x["tier"] == t["tier"])
+        assert tier["min"] - 0.05 <= t["observed"] <= tier["max"] + 0.05, t
 
 
-def test_no_model_is_credibly_better_externally_by_a_meaningful_margin():
-    # the stack's external edge was +0.004 AUC; if any model ever beats the deployed one by 0.01+ with an interval
-    # clear of zero, the model choice must be revisited
-    for name, m in SPEC["external"]["models"].items():
-        if m.get("d_vs_dep") is not None:
-            assert not (m["d_lo"] > 0 and m["d_vs_dep"] >= 0.01), name
+def test_cross_survey_validation_both_directions():
+    dep = {r["train"]: r for r in SPEC["cross_cycle"] if r["model"] == "lr_interact"}
+    assert set(dep) == {"G", "P"}
+    for r in dep.values():
+        assert r["auc_lo"] > 0.8

@@ -1,6 +1,7 @@
 import React from "react";
 import { Gauge, Activity, ListChecks, LineChart } from "lucide-react";
 import logo from "../assets/vitalckm-logo.gif";
+import { MODEL_SPEC as M } from "../localModel.js";
 
 export default function Landing({ user, onStart, onSignIn }) {
   return (
@@ -68,11 +69,12 @@ export default function Landing({ user, onStart, onSignIn }) {
       <section className="landing-section shell">
         <h2>Trained on modern US data</h2>
         <p style={{ maxWidth: 660, margin: "0 auto", textAlign: "center", color: "var(--ink-600)" }}>
-          The Quick Screen is a transparent logistic regression trained on 2,311 adults from NHANES 2011–2012, the national
-          health survey of the US. It reaches an AUC of 0.83 in cross-validation and 0.84 on 3,506 different adults from the
-          2017–2020 survey, and its percentages are calibrated to that newer population. It estimates whether you have
-          metabolic syndrome now, not your future risk, and it is educational. The Model &amp; Data tab inside the app gives
-          the full methodology and its limitations.
+          The Quick Screen is a transparent logistic regression trained on {M.training.rows.toLocaleString()} adults from
+          NHANES 2011–2012 and 2017–2020, the national health survey of the US. It reaches an AUC of{" "}
+          {M.validation.auc.toFixed(2)} in cross-validation, holds up when trained on one survey and tested on the other, and
+          its percentages are calibrated to the 2017–2020 population. It estimates whether you have metabolic syndrome now,
+          not your future risk, and it is educational. The Model &amp; Data tab inside the app gives the full methodology
+          and its limitations.
         </p>
       </section>
 
@@ -84,7 +86,7 @@ export default function Landing({ user, onStart, onSignIn }) {
 
       <footer className="landing-footer">
         vitalCKM Metabolic Screen · educational tool, not a substitute for professional medical advice · model
-        trained on NHANES 2011–2012
+        trained on NHANES 2011–12 and 2017–20
       </footer>
     </div>
   );

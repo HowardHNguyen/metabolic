@@ -113,7 +113,7 @@ async def lifespan(app: FastAPI):
 
 
 app = FastAPI(
-    title="vitalCKM Metabolic Screen API", version="1.0.0", lifespan=lifespan,
+    title="vitalCKM Metabolic Screen API", version="2.0.0", lifespan=lifespan,
     docs_url="/docs" if os.getenv("ENABLE_DOCS") == "1" else None,
     redoc_url=None,
     openapi_url="/openapi.json" if os.getenv("ENABLE_DOCS") == "1" else None,

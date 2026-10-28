@@ -30,6 +30,9 @@ function go(r) {
   window.location.hash = r === "landing" ? "" : `/${r}`;
 }
 
+// Assessments from a different major model version are not comparable (shown separately, kept out of the trend).
+const MODEL_MAJOR = String(MODEL.spec.version).split(".")[0];
+
 // Criteria met / not entered for a saved assessment, recomputed with the current rules.
 function criteriaSummary(inputs) {
   try {
@@ -186,7 +189,7 @@ function AssessmentApp({ authToken, onSessionExpired }) {
           waist: Number(inputs.WAIST),
           bmi: Number(inputs.BMI),
           // a different major model version is not comparable; kept only so it can be deleted
-          legacy: !String(a.model_version || "").startsWith("1."),
+          legacy: String(a.model_version || "").split(".")[0] !== MODEL_MAJOR,
           inputs,
         };
       });
@@ -367,7 +370,7 @@ function AssessmentApp({ authToken, onSessionExpired }) {
 
       <footer className="site-footer">
         <div className="shell">
-          vitalCKM Metabolic Screen · educational tool, not a substitute for professional medical advice · model trained on NHANES 2011–2012
+          vitalCKM Metabolic Screen · educational tool, not a substitute for professional medical advice · model trained on NHANES 2011–12 and 2017–20
         </div>
       </footer>
     </>

@@ -1,4 +1,9 @@
-"""Shared data loading and design matrix for the metabolic-syndrome models (NHANES 2011-12)."""
+"""Shared data loading and design matrix for the metabolic-syndrome models.
+
+v2 (current): NHANES 2011-12 + 2017-March 2020 rebuilt from the raw CDC files with one label definition
+              (ml/nhanes.py -> data/nhanes_pooled.csv). RECENT = 1 for the 2017-2020 cycle.
+v1 (archived): the 2011-12 extract data/metabolic_syndrome.csv (label: measured values only, no medicines).
+"""
 from __future__ import annotations
 
 from pathlib import Path
@@ -7,13 +12,14 @@ import numpy as np
 import pandas as pd
 
 ROOT = Path(__file__).resolve().parents[1]
-DATA = ROOT / "data" / "metabolic_syndrome.csv"
+DATA_V1 = ROOT / "data" / "metabolic_syndrome.csv"
+DATA = ROOT / "data" / "nhanes_pooled.csv"
 
 # NHANES race/ethnicity categories in the file; White is the reference level.
 RACES = ["Black", "Asian", "Hispanic", "MexAmerican", "Other"]
 RACE_FEATURES = [f"RACE_{r.upper()}" for r in RACES]
 
-FEATURE_SETS = {
+FEATURE_SETS_V1 = {
     # no tape measure, no blood test
     "no_waist": ["AGE", "MALE", *RACE_FEATURES, "BMI"],
     # no blood test: the deployed Quick Screen
@@ -23,6 +29,10 @@ FEATURE_SETS = {
     # every lab, including the three that define the label (glucose, HDL, TG) - leakage reference only
     "all_labs_leaky": ["AGE", "MALE", *RACE_FEATURES, "BMI", "WAIST", "URIC", "LOG_UACR", "GLUCOSE", "HDL", "TG"],
 }
+
+
+# v2 adds RECENT (survey cycle 2017-2020 = 1) to every input set; the shipped model fixes RECENT = 1 (today's population)
+FEATURE_SETS = {k: [*v, "RECENT"] for k, v in FEATURE_SETS_V1.items()}
 
 
 # Interaction terms of the deployed model (chosen in ml/benchmark.py; the benchmark also re-selects them inside every
@@ -47,10 +57,11 @@ def add_terms(X: pd.DataFrame, terms) -> pd.DataFrame:
     return X
 
 
-def load() -> pd.DataFrame:
-    d = pd.read_csv(DATA)
-    d = d[d.BMI.notna() & d.WaistCirc.notna()].reset_index(drop=True)  # complete cases for the anthropometrics
-    return d
+def load(version: str = "v2") -> pd.DataFrame:
+    if version == "v1":
+        d = pd.read_csv(DATA_V1)
+        return d[d.BMI.notna() & d.WaistCirc.notna()].reset_index(drop=True)  # complete cases for the anthropometrics
+    return pd.read_csv(DATA)  # already restricted to complete waist/BMI/labs/BP by ml/nhanes.py
 
 
 def design(d: pd.DataFrame) -> pd.DataFrame:
@@ -66,6 +77,7 @@ def design(d: pd.DataFrame) -> pd.DataFrame:
     X["GLUCOSE"] = d.BloodGlucose.astype(float)
     X["HDL"] = d.HDL.astype(float)
     X["TG"] = d.Triglycerides.astype(float)
+    X["RECENT"] = (d.cycle == "P").astype(float) if "cycle" in d else 0.0
     return X
 
 
