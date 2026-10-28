@@ -19,6 +19,7 @@ on:
       - "docs/**"
       - "ml/**"
       - "data/research/**"
+      - "data/external/**"
       - "**.md"
   workflow_dispatch:
 
