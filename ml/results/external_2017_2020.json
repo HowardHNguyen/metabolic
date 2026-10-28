@@ -1,0 +1,556 @@
+{
+ "flow": {
+  "P_DEMO participants": 15560,
+  "aged 20-80": 9232,
+  "not pregnant": 9145,
+  "waist and BMI measured": 7963,
+  "fasting glucose, triglycerides and HDL measured": 3711,
+  "blood pressure measured (or on BP medicine)": 3506,
+  "final external sample": 3506
+ },
+ "n": 3506,
+ "events": 1538,
+ "prevalence": 0.4387,
+ "prevalence_measured_only": 0.3719,
+ "training": {
+  "n": 2311,
+  "prevalence": 0.3475
+ },
+ "sets": {
+  "core": {
+   "n": 3506,
+   "models": {
+    "lr": {
+     "auc": 0.83753,
+     "auc_lo": 0.82504,
+     "auc_hi": 0.8496,
+     "brier": 0.16791,
+     "cal_slope": 1.04386,
+     "citl": 0.22614,
+     "o_e": 1.09495,
+     "ece": 0.06324,
+     "mean_pred": 0.40064,
+     "observed": 0.43868,
+     "auc_weighted": 0.83903,
+     "observed_weighted": 0.39774,
+     "mean_pred_weighted": 0.37313,
+     "d_vs_dep": -0.00608,
+     "d_lo": -0.00961,
+     "d_hi": -0.00267,
+     "auc_measured_only_label": 0.80256
+    },
+    "spline_lr": {
+     "auc": 0.84434,
+     "auc_lo": 0.83217,
+     "auc_hi": 0.85645,
+     "brier": 0.16254,
+     "cal_slope": 1.04989,
+     "citl": 0.24704,
+     "o_e": 1.10328,
+     "ece": 0.04483,
+     "mean_pred": 0.39761,
+     "observed": 0.43868,
+     "auc_weighted": 0.8456,
+     "observed_weighted": 0.39774,
+     "mean_pred_weighted": 0.37282,
+     "d_vs_dep": 0.00073,
+     "d_lo": -0.00353,
+     "d_hi": 0.00471,
+     "auc_measured_only_label": 0.80667
+    },
+    "lr_interact": {
+     "auc": 0.84361,
+     "auc_lo": 0.83167,
+     "auc_hi": 0.85557,
+     "brier": 0.16227,
+     "cal_slope": 1.07694,
+     "citl": 0.24069,
+     "o_e": 1.0999,
+     "ece": 0.04183,
+     "mean_pred": 0.39883,
+     "observed": 0.43868,
+     "auc_weighted": 0.84251,
+     "observed_weighted": 0.39774,
+     "mean_pred_weighted": 0.37292,
+     "auc_measured_only_label": 0.80729
+    },
+    "lr_interact_nested": {
+     "auc": 0.84321,
+     "auc_lo": 0.83134,
+     "auc_hi": 0.85506,
+     "brier": 0.16239,
+     "cal_slope": 1.07142,
+     "citl": 0.23787,
+     "o_e": 1.09851,
+     "ece": 0.04186,
+     "mean_pred": 0.39934,
+     "observed": 0.43868,
+     "auc_weighted": 0.84213,
+     "observed_weighted": 0.39774,
+     "mean_pred_weighted": 0.37373,
+     "d_vs_dep": -0.0004,
+     "d_lo": -0.0011,
+     "d_hi": 0.00022,
+     "auc_measured_only_label": 0.80716
+    },
+    "rf": {
+     "auc": 0.84549,
+     "auc_lo": 0.83243,
+     "auc_hi": 0.85795,
+     "brier": 0.16019,
+     "cal_slope": 1.11801,
+     "citl": 0.24971,
+     "o_e": 1.10516,
+     "ece": 0.04618,
+     "mean_pred": 0.39694,
+     "observed": 0.43868,
+     "auc_weighted": 0.84389,
+     "observed_weighted": 0.39774,
+     "mean_pred_weighted": 0.37921,
+     "d_vs_dep": 0.00189,
+     "d_lo": -0.00369,
+     "d_hi": 0.00708,
+     "auc_measured_only_label": 0.80828
+    },
+    "xgb": {
+     "auc": 0.84094,
+     "auc_lo": 0.82724,
+     "auc_hi": 0.85355,
+     "brier": 0.16249,
+     "cal_slope": 0.95319,
+     "citl": 0.26386,
+     "o_e": 1.10431,
+     "ece": 0.04552,
+     "mean_pred": 0.39724,
+     "observed": 0.43868,
+     "auc_weighted": 0.84053,
+     "observed_weighted": 0.39774,
+     "mean_pred_weighted": 0.37535,
+     "d_vs_dep": -0.00267,
+     "d_lo": -0.00864,
+     "d_hi": 0.00309,
+     "auc_measured_only_label": 0.80378
+    },
+    "lgbm": {
+     "auc": 0.83885,
+     "auc_lo": 0.8257,
+     "auc_hi": 0.85105,
+     "brier": 0.16317,
+     "cal_slope": 0.90202,
+     "citl": 0.24904,
+     "o_e": 1.09563,
+     "ece": 0.04355,
+     "mean_pred": 0.40039,
+     "observed": 0.43868,
+     "auc_weighted": 0.83727,
+     "observed_weighted": 0.39774,
+     "mean_pred_weighted": 0.37763,
+     "d_vs_dep": -0.00476,
+     "d_lo": -0.01119,
+     "d_hi": 0.00106,
+     "auc_measured_only_label": 0.80194
+    },
+    "stack_lr_rf_xgb": {
+     "auc": 0.84802,
+     "auc_lo": 0.83526,
+     "auc_hi": 0.86016,
+     "brier": 0.16034,
+     "cal_slope": 1.09201,
+     "citl": 0.23715,
+     "o_e": 1.09753,
+     "ece": 0.05605,
+     "mean_pred": 0.39969,
+     "observed": 0.43868,
+     "auc_weighted": 0.84731,
+     "observed_weighted": 0.39774,
+     "mean_pred_weighted": 0.38017,
+     "d_vs_dep": 0.00441,
+     "d_lo": 8e-05,
+     "d_hi": 0.00841,
+     "auc_measured_only_label": 0.81102
+    }
+   }
+  },
+  "core_labs": {
+   "n": 3460,
+   "models": {
+    "lr": {
+     "auc": 0.8471,
+     "auc_lo": 0.83465,
+     "auc_hi": 0.85983,
+     "brier": 0.16301,
+     "cal_slope": 1.05814,
+     "citl": 0.23976,
+     "o_e": 1.09816,
+     "ece": 0.06249,
+     "mean_pred": 0.39978,
+     "observed": 0.43902,
+     "auc_weighted": 0.84995,
+     "observed_weighted": 0.39801,
+     "mean_pred_weighted": 0.36913,
+     "d_vs_dep": -0.00704,
+     "d_lo": -0.01057,
+     "d_hi": -0.00362,
+     "auc_measured_only_label": 0.81424
+    },
+    "spline_lr": {
+     "auc": 0.85387,
+     "auc_lo": 0.84169,
+     "auc_hi": 0.86575,
+     "brier": 0.15749,
+     "cal_slope": 1.03737,
+     "citl": 0.25835,
+     "o_e": 1.10366,
+     "ece": 0.04401,
+     "mean_pred": 0.39778,
+     "observed": 0.43902,
+     "auc_weighted": 0.85854,
+     "observed_weighted": 0.39801,
+     "mean_pred_weighted": 0.36908,
+     "d_vs_dep": -0.00027,
+     "d_lo": -0.00518,
+     "d_hi": 0.00469,
+     "auc_measured_only_label": 0.81892
+    },
+    "lr_interact": {
+     "auc": 0.85414,
+     "auc_lo": 0.84197,
+     "auc_hi": 0.86673,
+     "brier": 0.15714,
+     "cal_slope": 1.09745,
+     "citl": 0.25228,
+     "o_e": 1.10217,
+     "ece": 0.04508,
+     "mean_pred": 0.39832,
+     "observed": 0.43902,
+     "auc_weighted": 0.85396,
+     "observed_weighted": 0.39801,
+     "mean_pred_weighted": 0.36839,
+     "auc_measured_only_label": 0.82112
+    },
+    "lr_interact_nested": {
+     "auc": 0.85374,
+     "auc_lo": 0.84174,
+     "auc_hi": 0.86639,
+     "brier": 0.15717,
+     "cal_slope": 1.08874,
+     "citl": 0.24785,
+     "o_e": 1.09997,
+     "ece": 0.04106,
+     "mean_pred": 0.39912,
+     "observed": 0.43902,
+     "auc_weighted": 0.85377,
+     "observed_weighted": 0.39801,
+     "mean_pred_weighted": 0.37096,
+     "d_vs_dep": -0.0004,
+     "d_lo": -0.00258,
+     "d_hi": 0.00169,
+     "auc_measured_only_label": 0.82091
+    },
+    "rf": {
+     "auc": 0.85837,
+     "auc_lo": 0.84581,
+     "auc_hi": 0.87026,
+     "brier": 0.15524,
+     "cal_slope": 1.21724,
+     "citl": 0.25588,
+     "o_e": 1.10902,
+     "ece": 0.05212,
+     "mean_pred": 0.39586,
+     "observed": 0.43902,
+     "auc_weighted": 0.86041,
+     "observed_weighted": 0.39801,
+     "mean_pred_weighted": 0.37324,
+     "d_vs_dep": 0.00423,
+     "d_lo": -0.00114,
+     "d_hi": 0.00936,
+     "auc_measured_only_label": 0.82232
+    },
+    "xgb": {
+     "auc": 0.85696,
+     "auc_lo": 0.84453,
+     "auc_hi": 0.86932,
+     "brier": 0.15474,
+     "cal_slope": 1.00037,
+     "citl": 0.25635,
+     "o_e": 1.0982,
+     "ece": 0.0403,
+     "mean_pred": 0.39976,
+     "observed": 0.43902,
+     "auc_weighted": 0.85759,
+     "observed_weighted": 0.39801,
+     "mean_pred_weighted": 0.37297,
+     "d_vs_dep": 0.00283,
+     "d_lo": -0.00298,
+     "d_hi": 0.00862,
+     "auc_measured_only_label": 0.8217
+    },
+    "lgbm": {
+     "auc": 0.85262,
+     "auc_lo": 0.83988,
+     "auc_hi": 0.86474,
+     "brier": 0.15658,
+     "cal_slope": 0.92183,
+     "citl": 0.24269,
+     "o_e": 1.08952,
+     "ece": 0.03853,
+     "mean_pred": 0.40295,
+     "observed": 0.43902,
+     "auc_weighted": 0.85344,
+     "observed_weighted": 0.39801,
+     "mean_pred_weighted": 0.37572,
+     "d_vs_dep": -0.00152,
+     "d_lo": -0.00775,
+     "d_hi": 0.00443,
+     "auc_measured_only_label": 0.81677
+    },
+    "stack_lr_rf_xgb": {
+     "auc": 0.86116,
+     "auc_lo": 0.849,
+     "auc_hi": 0.87346,
+     "brier": 0.15416,
+     "cal_slope": 1.11724,
+     "citl": 0.23254,
+     "o_e": 1.09273,
+     "ece": 0.05617,
+     "mean_pred": 0.40176,
+     "observed": 0.43902,
+     "auc_weighted": 0.86285,
+     "observed_weighted": 0.39801,
+     "mean_pred_weighted": 0.37633,
+     "d_vs_dep": 0.00702,
+     "d_lo": 0.00266,
+     "d_hi": 0.01121,
+     "auc_measured_only_label": 0.826
+    }
+   }
+  }
+ },
+ "shipped": {
+  "version": "1.1.0-lr-mets-quick-recal",
+  "intercept_shift": 0.2407,
+  "auc": 0.84361,
+  "auc_lo": 0.83167,
+  "auc_hi": 0.85557,
+  "brier": 0.1599,
+  "cal_slope": 1.07698,
+  "citl": -1e-05,
+  "o_e": 1.0,
+  "ece": 0.01747,
+  "mean_pred": 0.43868,
+  "observed": 0.43868,
+  "auc_weighted": 0.84251,
+  "observed_weighted": 0.39774,
+  "mean_pred_weighted": 0.41184,
+  "auc_measured_only_label": 0.80729
+ },
+ "deployed": {
+  "calibration_deciles": [
+   {
+    "decile": 1,
+    "n": 351,
+    "predicted": 0.0204,
+    "observed": 0.0142
+   },
+   {
+    "decile": 2,
+    "n": 351,
+    "predicted": 0.0846,
+    "observed": 0.0598
+   },
+   {
+    "decile": 3,
+    "n": 350,
+    "predicted": 0.1742,
+    "observed": 0.1543
+   },
+   {
+    "decile": 4,
+    "n": 351,
+    "predicted": 0.2816,
+    "observed": 0.265
+   },
+   {
+    "decile": 5,
+    "n": 350,
+    "predicted": 0.3866,
+    "observed": 0.3771
+   },
+   {
+    "decile": 6,
+    "n": 351,
+    "predicted": 0.4965,
+    "observed": 0.5242
+   },
+   {
+    "decile": 7,
+    "n": 350,
+    "predicted": 0.5999,
+    "observed": 0.6371
+   },
+   {
+    "decile": 8,
+    "n": 351,
+    "predicted": 0.6928,
+    "observed": 0.7094
+   },
+   {
+    "decile": 9,
+    "n": 350,
+    "predicted": 0.78,
+    "observed": 0.7857
+   },
+   {
+    "decile": 10,
+    "n": 351,
+    "predicted": 0.8708,
+    "observed": 0.8604
+   }
+  ],
+  "tiers": [
+   {
+    "tier": "Unlikely",
+    "range": [
+     0.0,
+     0.15
+    ],
+    "n": 796,
+    "observed": 0.049
+   },
+   {
+    "tier": "Possible",
+    "range": [
+     0.15,
+     0.4
+    ],
+    "n": 838,
+    "observed": 0.2494
+   },
+   {
+    "tier": "Likely",
+    "range": [
+     0.4,
+     0.65
+    ],
+    "n": 841,
+    "observed": 0.5696
+   },
+   {
+    "tier": "Very likely",
+    "range": [
+     0.65,
+     1.0
+    ],
+    "n": 1031,
+    "observed": 0.7866
+   }
+  ],
+  "thresholds": {
+   "0.15": {
+    "sensitivity": 0.975,
+    "specificity": 0.385,
+    "ppv": 0.553,
+    "flagged": 0.773
+   },
+   "0.4": {
+    "sensitivity": 0.839,
+    "specificity": 0.704,
+    "ppv": 0.689,
+    "flagged": 0.534
+   },
+   "0.65": {
+    "sensitivity": 0.527,
+    "specificity": 0.888,
+    "ppv": 0.787,
+    "flagged": 0.294
+   }
+  },
+  "subgroups": {
+   "Men": {
+    "n": 1744,
+    "events": 719,
+    "auc": 0.853,
+    "predicted": 0.4367,
+    "observed": 0.4123
+   },
+   "Women": {
+    "n": 1762,
+    "events": 819,
+    "auc": 0.837,
+    "predicted": 0.4406,
+    "observed": 0.4648
+   },
+   "Age 20-39": {
+    "n": 1031,
+    "events": 247,
+    "auc": 0.845,
+    "predicted": 0.2765,
+    "observed": 0.2396
+   },
+   "Age 40-59": {
+    "n": 1186,
+    "events": 544,
+    "auc": 0.816,
+    "predicted": 0.4434,
+    "observed": 0.4587
+   },
+   "Age 60-80": {
+    "n": 1289,
+    "events": 747,
+    "auc": 0.824,
+    "predicted": 0.5641,
+    "observed": 0.5795
+   },
+   "White": {
+    "n": 1205,
+    "events": 546,
+    "auc": 0.846,
+    "predicted": 0.4593,
+    "observed": 0.4531
+   },
+   "Black": {
+    "n": 894,
+    "events": 380,
+    "auc": 0.86,
+    "predicted": 0.4192,
+    "observed": 0.4251
+   },
+   "Asian": {
+    "n": 431,
+    "events": 146,
+    "auc": 0.846,
+    "predicted": 0.3512,
+    "observed": 0.3387
+   },
+   "Hispanic": {
+    "n": 353,
+    "events": 173,
+    "auc": 0.841,
+    "predicted": 0.4944,
+    "observed": 0.4901
+   },
+   "Mexican American": {
+    "n": 436,
+    "events": 204,
+    "auc": 0.798,
+    "predicted": 0.4881,
+    "observed": 0.4679
+   },
+   "Other": {
+    "n": 187,
+    "events": 89,
+    "auc": 0.835,
+    "predicted": 0.3804,
+    "observed": 0.4759
+   }
+  },
+  "criteria_count_auc": 0.9492,
+  "recalibration": {
+   "intercept_shift": 0.2407,
+   "o_e_before": 1.1,
+   "o_e_after": 1.0,
+   "cal_slope_after": 1.077,
+   "shift_in_shipped_model": 0.2407
+  }
+ }
+}

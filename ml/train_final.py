@@ -30,7 +30,8 @@ sys.path.insert(0, str(Path(__file__).resolve().parent))
 from common import (DATA, FEATURE_SETS, INTERACTIONS, RACES, RACE_FEATURES, WAIST_CENTER, add_terms,  # noqa: E402
                     design, load, target)
 
-VERSION = "1.0.0-lr-mets-quick"
+VERSION = "1.1.0-lr-mets-quick-recal"
+EXTERNAL = ROOT / "ml" / "results" / "external_2017_2020.json"
 BASE_FEATURES = FEATURE_SETS["core"]
 C = 1.0
 FEATURES = BASE_FEATURES + INTERACTIONS
@@ -98,6 +99,26 @@ def _benchmark_rows() -> list[dict]:
                                          "d_vs_lr", "d_lo", "d_hi", "d_vs_dep", "d_dep_lo", "d_dep_hi"]]
                       .round(6).to_json(orient="records"))
     return rows
+
+
+def _external(ext: dict | None) -> dict | None:
+    """External-validation figures shown on the Model & Data tab (from ml/results/external_2017_2020.json)."""
+    if not ext:
+        return None
+    keep = ("auc", "auc_lo", "auc_hi", "brier", "cal_slope", "citl", "o_e", "ece", "d_vs_dep", "d_lo", "d_hi",
+            "auc_weighted", "observed_weighted", "mean_pred_weighted", "mean_pred", "observed")
+    return {
+        "source": "NHANES 2017-March 2020 (pre-pandemic): fasting subsample, non-pregnant adults aged 20-80",
+        "flow": ext["flow"], "n": ext["n"], "events": ext["events"], "prevalence": ext["prevalence"],
+        "prevalence_measured_only": ext["prevalence_measured_only"],
+        "label": "ATP III with medicines (BP medicine counts for blood pressure; diagnosed diabetes or diabetes medicine for glucose)",
+        "models": {k: {kk: v[kk] for kk in keep if kk in v} for k, v in ext["sets"]["core"]["models"].items()},
+        "models_with_labs": ({k: {kk: v[kk] for kk in ("auc", "d_vs_dep", "d_lo", "d_hi") if kk in v}
+                              for k, v in ext["sets"]["core_labs"]["models"].items()} if "core_labs" in ext["sets"] else None),
+        "shipped": ext.get("shipped"), **{k: ext["deployed"][k] for k in
+                                          ("calibration_deciles", "tiers", "thresholds", "subgroups", "recalibration",
+                                           "criteria_count_auc")},
+    }
 
 
 def percentiles(d: pd.DataFrame) -> dict:
@@ -171,6 +192,11 @@ def main():
         tier_obs.append({"tier": t["tier"], "n": int(m.sum()), "observed": round(float(y[m].mean()), 4) if m.any() else None})
     # ---- final fit on all rows
     b, w = fit_raw(X, y)
+    # ---- recalibration (v1.1): shift the intercept so the average estimate matches NHANES 2017-March 2020, the newer
+    # population (ml/external_validation.py). Slopes, odds ratios, ranking and AUC are unchanged; only the overall
+    # level of the percentages moves. The internal validation numbers below describe the development model (no shift).
+    ext = json.loads(EXTERNAL.read_text()) if EXTERNAL.exists() else None
+    shift = float(ext["deployed"]["recalibration"]["intercept_shift"]) if ext else 0.0
     ref = Xb.mean()
     ref[RACE_FEATURES] = 0.0  # reference profile: White, otherwise the sample average
 
@@ -206,7 +232,8 @@ def main():
                **{f: 1.0 if c["RACE"] == r else 0.0 for r, f in zip(RACES, RACE_FEATURES)},
                "BMI": c["BMI"], "WAIST": c["WAIST"]}
         xr = add_terms(pd.DataFrame([row]), INTERACTIONS)[FEATURES]
-        golden.append({"input": c, "p": float(skl.predict_proba(sc.transform(xr))[:, 1][0])})
+        z = float(skl.decision_function(sc.transform(xr))[0]) + shift
+        golden.append({"input": c, "p": 1.0 / (1.0 + np.exp(-z))})
     # race not given -> the race indicators take their training means (an average over the sample's mix)
     raw = pd.read_csv(DATA)
     model = {
@@ -215,7 +242,10 @@ def main():
                    "low HDL, high blood pressure, high fasting glucose)",
         "population": "Non-pregnant US adults aged 20-80",
         "features": FEATURES, "base_features": BASE_FEATURES, "terms": TERMS,
-        "intercept": b, "coef": [float(x) for x in w],
+        "intercept": b + shift, "coef": [float(x) for x in w],
+        "recalibration": {"intercept_shift": round(shift, 4), "development_intercept": b,
+                          "method": "intercept-only (calibration-in-the-large) update on the log-odds scale",
+                          "estimated_on": "NHANES 2017-March 2020 (pre-pandemic), the external validation sample"},
         "train_means": {f: float(v) for f, v in X.mean().items()},
         "base_profile": {f: float(v) for f, v in Xb.mean().items()},
         "races": ["White", *RACES], "race_features": dict(zip(RACES, RACE_FEATURES)),
@@ -237,6 +267,7 @@ def main():
                        "tier_observed": tier_obs, "criteria_agreement": criteria_agreement(raw)},
         "odds_ratios": ors, "golden": golden,
         "benchmark": _benchmark_rows(),
+        "external": _external(ext),
     }
     for path in (ROOT / "backend/artifacts/models_v1_mets/model.json", ROOT / "frontend/src/model.json"):
         path.parent.mkdir(parents=True, exist_ok=True)
@@ -250,6 +281,7 @@ def main():
     print(" tiers", tier_obs)
     print(pd.DataFrame(ors).to_string(index=False))
     print(" coef", dict(zip(FEATURES, np.round(w, 5))))
+    print(f" intercept shift {shift:+.4f} -> shipped intercept {b + shift:.5f}")
 
 
 if __name__ == "__main__":

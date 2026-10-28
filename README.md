@@ -60,7 +60,7 @@ meaningless. The model is used only where one is needed: estimating the answer w
 - 2,401 adults aged 20–80; 2,311 with waist and BMI measured.
 - 34.7% have MetS.
 
-**Deployed:** `1.0.0-lr-mets-quick`.
+**Deployed:** `1.1.0-lr-mets-quick-recal`, i.e. `1.0.0` plus an intercept update to the 2017–2020 population (see below).
 - Logistic regression on age, sex, five race/ethnicity indicators, BMI and waist.
 - Three extra terms: sex × age, sex × waist, waist². These let waist and age act differently by sex, matching the
   sex-specific cut-points.
@@ -73,6 +73,15 @@ meaningless. The model is used only where one is needed: estimating the answer w
 | Observed MetS in each level | Unlikely 5% · Possible 26% · Likely 56% · Very likely 73% |
 | Terms re-selected inside every training fold (nested) | AUC 0.831, so the choice is not over-fitted |
 
+**External validation:** [`ml/EXTERNAL.md`](ml/EXTERNAL.md), produced by `ml/external_validation.py`.
+- Every model was trained on 2011–12 and scored on 3,506 different adults from **NHANES 2017–March 2020**.
+- Deployed model: AUC **0.844** (0.832–0.856), calibration slope 1.08.
+- As developed, it under-estimated prevalence (O/E 1.10). v1.1 adds **+0.24** to the log-odds intercept, which brings
+  O/E to 1.00. Ranking, odds ratios and explanations are unchanged.
+- The stack is +0.004 AUC (+0.0001 to +0.0084); RF, XGBoost and LightGBM are tied. The deployed LR is kept for
+  exact explanations and in-browser What-If.
+- The CDC files are in `data/external/`. The next step is retraining on both surveys with one label definition.
+
 **Benchmark:** see [`ml/RESULTS.md`](ml/RESULTS.md).
 - Compared plain LR, spline LR, random forest, XGBoost, LightGBM and an LR+RF+XGB stack on four input sets.
 - The interaction LR closes most of the gap to the tree models. The remaining stack advantage is shown with its
@@ -82,7 +91,7 @@ meaningless. The model is used only where one is needed: estimating the answer w
 **Limitations:**
 - It measures current status, not a forecast.
 - One unweighted survey cycle, so percentages describe the sample, not exact national figures.
-- Internal validation only.
+- Validated on one later US survey (2017–2020); the intercept update was estimated on that same sample.
 - Home-measured waist adds noise.
 
 ## Research datasets (`data/research/`)
@@ -159,7 +168,8 @@ Retraining (`pip install -r ml/requirements.txt`):
 
 ```bash
 python ml/benchmark.py          # model comparison (~10 min on 2 cores) -> ml/results/benchmark.csv
-python ml/train_final.py        # retrain + validate, rewrite backend/ and frontend/ model.json
+python ml/external_validation.py  # external check on NHANES 2017-2020 (data/external/) -> ml/EXTERNAL.md
+python ml/train_final.py        # retrain + validate + apply the external intercept update, rewrite both model.json
 python ml/research_summary.py   # rebuild the Research tab data
 ```
 

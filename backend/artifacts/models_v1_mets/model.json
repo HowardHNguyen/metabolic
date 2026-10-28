@@ -1,6 +1,6 @@
 {
- "version": "1.0.0-lr-mets-quick",
- "trained": "2026-10-26",
+ "version": "1.1.0-lr-mets-quick-recal",
+ "trained": "2026-10-27",
  "outcome": "Currently meeting the criteria for metabolic syndrome (3 or more of: large waist, high triglycerides, low HDL, high blood pressure, high fasting glucose)",
  "population": "Non-pregnant US adults aged 20-80",
  "features": [
@@ -45,7 +45,7 @@
    "center": 98.0
   }
  },
- "intercept": -12.22958460898839,
+ "intercept": -11.98888460898839,
  "coef": [
   0.04025309020150428,
   -0.8552341566477074,
@@ -60,6 +60,12 @@
   0.01804433013374826,
   -0.001198776003536307
  ],
+ "recalibration": {
+  "intercept_shift": 0.2407,
+  "development_intercept": -12.22958460898839,
+  "method": "intercept-only (calibration-in-the-large) update on the log-odds scale",
+  "estimated_on": "NHANES 2017-March 2020 (pre-pandemic), the external validation sample"
+ },
  "train_means": {
   "AGE": 48.36347901341411,
   "MALE": 0.4984855041107746,
@@ -3608,7 +3614,7 @@
     "BMI": 22.5,
     "WAIST": 78
    },
-   "p": 0.021623731621017755
+   "p": 0.02734746881789292
   },
   {
    "input": {
@@ -3618,7 +3624,7 @@
     "BMI": 31.0,
     "WAIST": 106
    },
-   "p": 0.4238196221193579
+   "p": 0.4834028942724505
   },
   {
    "input": {
@@ -3628,7 +3634,7 @@
     "BMI": 28.4,
     "WAIST": 101
    },
-   "p": 0.4975532661694379
+   "p": 0.5574730973033305
   },
   {
    "input": {
@@ -3638,7 +3644,7 @@
     "BMI": 26.0,
     "WAIST": 90
    },
-   "p": 0.37082140605190345
+   "p": 0.4284948958251241
   },
   {
    "input": {
@@ -3648,7 +3654,7 @@
     "BMI": 36.5,
     "WAIST": 112
    },
-   "p": 0.6633233468382663
+   "p": 0.714805605244346
   },
   {
    "input": {
@@ -3658,7 +3664,7 @@
     "BMI": 20.1,
     "WAIST": 72
    },
-   "p": 0.004618245530362288
+   "p": 0.005867677270056664
   }
  ],
  "benchmark": [
@@ -4112,5 +4118,437 @@
    "d_dep_lo": 0.03972,
    "d_dep_hi": 0.05594
   }
- ]
+ ],
+ "external": {
+  "source": "NHANES 2017-March 2020 (pre-pandemic): fasting subsample, non-pregnant adults aged 20-80",
+  "flow": {
+   "P_DEMO participants": 15560,
+   "aged 20-80": 9232,
+   "not pregnant": 9145,
+   "waist and BMI measured": 7963,
+   "fasting glucose, triglycerides and HDL measured": 3711,
+   "blood pressure measured (or on BP medicine)": 3506,
+   "final external sample": 3506
+  },
+  "n": 3506,
+  "events": 1538,
+  "prevalence": 0.4387,
+  "prevalence_measured_only": 0.3719,
+  "label": "ATP III with medicines (BP medicine counts for blood pressure; diagnosed diabetes or diabetes medicine for glucose)",
+  "models": {
+   "lr": {
+    "auc": 0.83753,
+    "auc_lo": 0.82504,
+    "auc_hi": 0.8496,
+    "brier": 0.16791,
+    "cal_slope": 1.04386,
+    "citl": 0.22614,
+    "o_e": 1.09495,
+    "ece": 0.06324,
+    "d_vs_dep": -0.00608,
+    "d_lo": -0.00961,
+    "d_hi": -0.00267,
+    "auc_weighted": 0.83903,
+    "observed_weighted": 0.39774,
+    "mean_pred_weighted": 0.37313,
+    "mean_pred": 0.40064,
+    "observed": 0.43868
+   },
+   "spline_lr": {
+    "auc": 0.84434,
+    "auc_lo": 0.83217,
+    "auc_hi": 0.85645,
+    "brier": 0.16254,
+    "cal_slope": 1.04989,
+    "citl": 0.24704,
+    "o_e": 1.10328,
+    "ece": 0.04483,
+    "d_vs_dep": 0.00073,
+    "d_lo": -0.00353,
+    "d_hi": 0.00471,
+    "auc_weighted": 0.8456,
+    "observed_weighted": 0.39774,
+    "mean_pred_weighted": 0.37282,
+    "mean_pred": 0.39761,
+    "observed": 0.43868
+   },
+   "lr_interact": {
+    "auc": 0.84361,
+    "auc_lo": 0.83167,
+    "auc_hi": 0.85557,
+    "brier": 0.16227,
+    "cal_slope": 1.07694,
+    "citl": 0.24069,
+    "o_e": 1.0999,
+    "ece": 0.04183,
+    "auc_weighted": 0.84251,
+    "observed_weighted": 0.39774,
+    "mean_pred_weighted": 0.37292,
+    "mean_pred": 0.39883,
+    "observed": 0.43868
+   },
+   "lr_interact_nested": {
+    "auc": 0.84321,
+    "auc_lo": 0.83134,
+    "auc_hi": 0.85506,
+    "brier": 0.16239,
+    "cal_slope": 1.07142,
+    "citl": 0.23787,
+    "o_e": 1.09851,
+    "ece": 0.04186,
+    "d_vs_dep": -0.0004,
+    "d_lo": -0.0011,
+    "d_hi": 0.00022,
+    "auc_weighted": 0.84213,
+    "observed_weighted": 0.39774,
+    "mean_pred_weighted": 0.37373,
+    "mean_pred": 0.39934,
+    "observed": 0.43868
+   },
+   "rf": {
+    "auc": 0.84549,
+    "auc_lo": 0.83243,
+    "auc_hi": 0.85795,
+    "brier": 0.16019,
+    "cal_slope": 1.11801,
+    "citl": 0.24971,
+    "o_e": 1.10516,
+    "ece": 0.04618,
+    "d_vs_dep": 0.00189,
+    "d_lo": -0.00369,
+    "d_hi": 0.00708,
+    "auc_weighted": 0.84389,
+    "observed_weighted": 0.39774,
+    "mean_pred_weighted": 0.37921,
+    "mean_pred": 0.39694,
+    "observed": 0.43868
+   },
+   "xgb": {
+    "auc": 0.84094,
+    "auc_lo": 0.82724,
+    "auc_hi": 0.85355,
+    "brier": 0.16249,
+    "cal_slope": 0.95319,
+    "citl": 0.26386,
+    "o_e": 1.10431,
+    "ece": 0.04552,
+    "d_vs_dep": -0.00267,
+    "d_lo": -0.00864,
+    "d_hi": 0.00309,
+    "auc_weighted": 0.84053,
+    "observed_weighted": 0.39774,
+    "mean_pred_weighted": 0.37535,
+    "mean_pred": 0.39724,
+    "observed": 0.43868
+   },
+   "lgbm": {
+    "auc": 0.83885,
+    "auc_lo": 0.8257,
+    "auc_hi": 0.85105,
+    "brier": 0.16317,
+    "cal_slope": 0.90202,
+    "citl": 0.24904,
+    "o_e": 1.09563,
+    "ece": 0.04355,
+    "d_vs_dep": -0.00476,
+    "d_lo": -0.01119,
+    "d_hi": 0.00106,
+    "auc_weighted": 0.83727,
+    "observed_weighted": 0.39774,
+    "mean_pred_weighted": 0.37763,
+    "mean_pred": 0.40039,
+    "observed": 0.43868
+   },
+   "stack_lr_rf_xgb": {
+    "auc": 0.84802,
+    "auc_lo": 0.83526,
+    "auc_hi": 0.86016,
+    "brier": 0.16034,
+    "cal_slope": 1.09201,
+    "citl": 0.23715,
+    "o_e": 1.09753,
+    "ece": 0.05605,
+    "d_vs_dep": 0.00441,
+    "d_lo": 8e-05,
+    "d_hi": 0.00841,
+    "auc_weighted": 0.84731,
+    "observed_weighted": 0.39774,
+    "mean_pred_weighted": 0.38017,
+    "mean_pred": 0.39969,
+    "observed": 0.43868
+   }
+  },
+  "models_with_labs": {
+   "lr": {
+    "auc": 0.8471,
+    "d_vs_dep": -0.00704,
+    "d_lo": -0.01057,
+    "d_hi": -0.00362
+   },
+   "spline_lr": {
+    "auc": 0.85387,
+    "d_vs_dep": -0.00027,
+    "d_lo": -0.00518,
+    "d_hi": 0.00469
+   },
+   "lr_interact": {
+    "auc": 0.85414
+   },
+   "lr_interact_nested": {
+    "auc": 0.85374,
+    "d_vs_dep": -0.0004,
+    "d_lo": -0.00258,
+    "d_hi": 0.00169
+   },
+   "rf": {
+    "auc": 0.85837,
+    "d_vs_dep": 0.00423,
+    "d_lo": -0.00114,
+    "d_hi": 0.00936
+   },
+   "xgb": {
+    "auc": 0.85696,
+    "d_vs_dep": 0.00283,
+    "d_lo": -0.00298,
+    "d_hi": 0.00862
+   },
+   "lgbm": {
+    "auc": 0.85262,
+    "d_vs_dep": -0.00152,
+    "d_lo": -0.00775,
+    "d_hi": 0.00443
+   },
+   "stack_lr_rf_xgb": {
+    "auc": 0.86116,
+    "d_vs_dep": 0.00702,
+    "d_lo": 0.00266,
+    "d_hi": 0.01121
+   }
+  },
+  "shipped": {
+   "version": "1.1.0-lr-mets-quick-recal",
+   "intercept_shift": 0.2407,
+   "auc": 0.84361,
+   "auc_lo": 0.83167,
+   "auc_hi": 0.85557,
+   "brier": 0.1599,
+   "cal_slope": 1.07698,
+   "citl": -1e-05,
+   "o_e": 1.0,
+   "ece": 0.01747,
+   "mean_pred": 0.43868,
+   "observed": 0.43868,
+   "auc_weighted": 0.84251,
+   "observed_weighted": 0.39774,
+   "mean_pred_weighted": 0.41184,
+   "auc_measured_only_label": 0.80729
+  },
+  "calibration_deciles": [
+   {
+    "decile": 1,
+    "n": 351,
+    "predicted": 0.0204,
+    "observed": 0.0142
+   },
+   {
+    "decile": 2,
+    "n": 351,
+    "predicted": 0.0846,
+    "observed": 0.0598
+   },
+   {
+    "decile": 3,
+    "n": 350,
+    "predicted": 0.1742,
+    "observed": 0.1543
+   },
+   {
+    "decile": 4,
+    "n": 351,
+    "predicted": 0.2816,
+    "observed": 0.265
+   },
+   {
+    "decile": 5,
+    "n": 350,
+    "predicted": 0.3866,
+    "observed": 0.3771
+   },
+   {
+    "decile": 6,
+    "n": 351,
+    "predicted": 0.4965,
+    "observed": 0.5242
+   },
+   {
+    "decile": 7,
+    "n": 350,
+    "predicted": 0.5999,
+    "observed": 0.6371
+   },
+   {
+    "decile": 8,
+    "n": 351,
+    "predicted": 0.6928,
+    "observed": 0.7094
+   },
+   {
+    "decile": 9,
+    "n": 350,
+    "predicted": 0.78,
+    "observed": 0.7857
+   },
+   {
+    "decile": 10,
+    "n": 351,
+    "predicted": 0.8708,
+    "observed": 0.8604
+   }
+  ],
+  "tiers": [
+   {
+    "tier": "Unlikely",
+    "range": [
+     0.0,
+     0.15
+    ],
+    "n": 796,
+    "observed": 0.049
+   },
+   {
+    "tier": "Possible",
+    "range": [
+     0.15,
+     0.4
+    ],
+    "n": 838,
+    "observed": 0.2494
+   },
+   {
+    "tier": "Likely",
+    "range": [
+     0.4,
+     0.65
+    ],
+    "n": 841,
+    "observed": 0.5696
+   },
+   {
+    "tier": "Very likely",
+    "range": [
+     0.65,
+     1.0
+    ],
+    "n": 1031,
+    "observed": 0.7866
+   }
+  ],
+  "thresholds": {
+   "0.15": {
+    "sensitivity": 0.975,
+    "specificity": 0.385,
+    "ppv": 0.553,
+    "flagged": 0.773
+   },
+   "0.4": {
+    "sensitivity": 0.839,
+    "specificity": 0.704,
+    "ppv": 0.689,
+    "flagged": 0.534
+   },
+   "0.65": {
+    "sensitivity": 0.527,
+    "specificity": 0.888,
+    "ppv": 0.787,
+    "flagged": 0.294
+   }
+  },
+  "subgroups": {
+   "Men": {
+    "n": 1744,
+    "events": 719,
+    "auc": 0.853,
+    "predicted": 0.4367,
+    "observed": 0.4123
+   },
+   "Women": {
+    "n": 1762,
+    "events": 819,
+    "auc": 0.837,
+    "predicted": 0.4406,
+    "observed": 0.4648
+   },
+   "Age 20-39": {
+    "n": 1031,
+    "events": 247,
+    "auc": 0.845,
+    "predicted": 0.2765,
+    "observed": 0.2396
+   },
+   "Age 40-59": {
+    "n": 1186,
+    "events": 544,
+    "auc": 0.816,
+    "predicted": 0.4434,
+    "observed": 0.4587
+   },
+   "Age 60-80": {
+    "n": 1289,
+    "events": 747,
+    "auc": 0.824,
+    "predicted": 0.5641,
+    "observed": 0.5795
+   },
+   "White": {
+    "n": 1205,
+    "events": 546,
+    "auc": 0.846,
+    "predicted": 0.4593,
+    "observed": 0.4531
+   },
+   "Black": {
+    "n": 894,
+    "events": 380,
+    "auc": 0.86,
+    "predicted": 0.4192,
+    "observed": 0.4251
+   },
+   "Asian": {
+    "n": 431,
+    "events": 146,
+    "auc": 0.846,
+    "predicted": 0.3512,
+    "observed": 0.3387
+   },
+   "Hispanic": {
+    "n": 353,
+    "events": 173,
+    "auc": 0.841,
+    "predicted": 0.4944,
+    "observed": 0.4901
+   },
+   "Mexican American": {
+    "n": 436,
+    "events": 204,
+    "auc": 0.798,
+    "predicted": 0.4881,
+    "observed": 0.4679
+   },
+   "Other": {
+    "n": 187,
+    "events": 89,
+    "auc": 0.835,
+    "predicted": 0.3804,
+    "observed": 0.4759
+   }
+  },
+  "recalibration": {
+   "intercept_shift": 0.2407,
+   "o_e_before": 1.1,
+   "o_e_after": 1.0,
+   "cal_slope_after": 1.077,
+   "shift_in_shipped_model": 0.2407
+  },
+  "criteria_count_auc": 0.9492
+ }
 }
